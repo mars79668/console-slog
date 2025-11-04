@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"time"
+	"strings"
 )
 
 type encoder struct {
@@ -75,11 +76,32 @@ func (e encoder) writeTimestamp(buf *buffer, tt time.Time) {
 	}
 }
 
+func cleanFullRelPath(fullRelPath string) string {
+	trimDotPath := strings.ReplaceAll(fullRelPath, "../", "")
+
+	if len(trimDotPath) == len(fullRelPath) {
+		return fullRelPath
+	}
+	trimGoModPath := strings.ReplaceAll(trimDotPath, "go/pkg/mod/", "")
+	if len(trimGoModPath) == len(trimDotPath) {
+		return trimDotPath
+	}
+
+	posVer := strings.Index(trimGoModPath, "@v")
+	if posVer > 0 {
+		tpos := strings.LastIndex(trimGoModPath[:posVer], "/")
+		if tpos > 0 {
+			trimGoModPath = trimGoModPath[tpos+1:]
+		}
+	}
+	return trimGoModPath
+}
+
 func (e encoder) writeSource(buf *buffer, pc uintptr, cwd string) {
 	frame, _ := runtime.CallersFrames([]uintptr{pc}).Next()
 	if cwd != "" {
 		if ff, err := filepath.Rel(cwd, frame.File); err == nil {
-			frame.File = ff
+			frame.File = cleanFullRelPath(ff)
 		}
 	}
 	e.withColor(buf, e.opts.Theme.Source(), func() {
