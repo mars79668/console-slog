@@ -97,10 +97,15 @@ func cleanFullRelPath(fullRelPath string) string {
 	return trimGoModPath
 }
 
-func (e encoder) writeSource(buf *buffer, pc uintptr, cwd string) {
+func (e encoder) writeSource(buf *buffer, pc uintptr) {
 	frame, _ := runtime.CallersFrames([]uintptr{pc}).Next()
-	if cwd != "" {
-		if ff, err := filepath.Rel(cwd, frame.File); err == nil {
+	// prefer explicit WorkDir from options; fall back to global cwd
+	wd := e.opts.WorkDir
+	if wd == "" {
+		wd = cwd
+	}
+	if wd != "" {
+		if ff, err := filepath.Rel(wd, frame.File); err == nil {
 			frame.File = cleanFullRelPath(ff)
 		}
 	}

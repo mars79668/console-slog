@@ -38,6 +38,9 @@ type HandlerOptions struct {
 
 	// Theme defines the colorized output using ANSI escape sequences
 	Theme Theme
+	// WorkDir is the project working directory. If set, file
+	// paths will be made relative to this directory for concise output.
+	WorkDir string
 }
 
 type Handler struct {
@@ -87,7 +90,7 @@ func (h *Handler) Handle(_ context.Context, rec slog.Record) error {
 	h.enc.writeTimestamp(buf, rec.Time)
 	h.enc.writeLevel(buf, rec.Level)
 	if h.opts.AddSource && rec.PC > 0 {
-		h.enc.writeSource(buf, rec.PC, cwd)
+		h.enc.writeSource(buf, rec.PC)
 	}
 	h.enc.writeMessage(buf, rec.Level, rec.Message)
 	buf.copy(&h.context)

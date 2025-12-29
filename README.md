@@ -47,6 +47,15 @@ console.NewHandler(os.Stderr, &console.HandlerOptions{Level: slog.LevelDebug, Ad
 ```
 ![output-with-source](./doc/img/output-with-source.png)
 
+To shorten file paths shown in source output, set `WorkDir` to your project
+working directory. When present, file paths are made relative to `WorkDir`.
+Example:
+
+```go
+cwd, _ := os.Getwd()
+console.NewHandler(os.Stderr, &console.HandlerOptions{Level: slog.LevelDebug, AddSource: true, WorkDir: cwd})
+```
+
 ## Performances
 See [benchmark file](./bench_test.go) for details.
 

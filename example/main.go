@@ -9,8 +9,9 @@ import (
 )
 
 func main() {
+	cwd, _ := os.Getwd()
 	logger := slog.New(
-		console.NewHandler(os.Stderr, &console.HandlerOptions{Level: slog.LevelDebug, AddSource: true}),
+		console.NewHandler(os.Stderr, &console.HandlerOptions{Level: slog.LevelDebug, AddSource: true, WorkDir: cwd}),
 	)
 	slog.SetDefault(logger)
 	slog.Info("Hello world!", "foo", "bar")

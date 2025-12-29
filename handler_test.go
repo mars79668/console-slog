@@ -271,6 +271,20 @@ func TestHandler_Source(t *testing.T) {
 	AssertEqual(t, fmt.Sprintf("%s INF foobar\n", now.Format(time.DateTime)), buf.String())
 }
 
+func TestHandler_WorkDir(t *testing.T) {
+	buf := bytes.Buffer{}
+	// set WorkDir to two levels up from this file so the relative path
+	// is different from the repository cwd
+	pc, file, line, _ := runtime.Caller(0)
+	workDir := filepath.Dir(filepath.Dir(file))
+	h := NewHandler(&buf, &HandlerOptions{NoColor: true, AddSource: true, WorkDir: workDir})
+	now := time.Now()
+	rec := slog.NewRecord(now, slog.LevelInfo, "foobar", pc)
+	AssertNoError(t, h.Handle(context.Background(), rec))
+	rel, _ := filepath.Rel(workDir, file)
+	AssertEqual(t, fmt.Sprintf("%s INF %s:%d > foobar\n", now.Format(time.DateTime), rel, line), buf.String())
+}
+
 func TestHandler_Err(t *testing.T) {
 	w := writerFunc(func(b []byte) (int, error) { return 0, errors.New("nope") })
 	h := NewHandler(w, &HandlerOptions{NoColor: true})
